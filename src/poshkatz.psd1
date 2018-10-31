@@ -19,7 +19,7 @@ Copyright = '(c) Adam Driscoll and Lee Berg'
 Description = 'Provides mimikatz tab expansion and cmdlets'
 
 # Minimum version of the Windows PowerShell engine required by this module
-PowerShellVersion = '5.0'
+PowerShellVersion = '4.0'
 
 # Functions to export from this module
 FunctionsToExport = @(
@@ -36,7 +36,8 @@ FunctionsToExport = @(
     'Invoke-MKDcSync',
     'Invoke-MKPassTheHash',
     'TabExpansion',
-    'Get-AliasPattern'
+    'Get-AliasPattern',
+    'ConvertFrom-Mimi'
 )
 
 # Cmdlets to export from this module
@@ -57,13 +58,13 @@ PrivateData = @{
         Tags = @('mimikatz', 'tab', 'tab-completion', 'tab-expansion', 'tabexpansion')
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/adamdriscoll/poshkatz/blob/master/LICENSE'
+        LicenseUri = 'https://github.com/stealthbits/poshkatz/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://github.com/adamdriscoll/poshkatz'
+        ProjectUri = 'https://github.com/stealthbits/poshkatz'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'https://github.com/adamdriscoll/poshkatz/blob/master/CHANGELOG.MD'
+        ReleaseNotes = 'https://github.com/stealthbits/poshkatz/blob/master/CHANGELOG.MD'
     }
 
 }
