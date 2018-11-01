@@ -4,7 +4,6 @@ $psv = $PSVersionTable.PSVersion
 
 . $PSScriptRoot\Commands.ps1
 . $PSScriptRoot\Utils.ps1
-. $PSScriptRoot\ParamTabExpansion.ps1
 . $PSScriptRoot\TabExpansion.ps1
 
 $exportModuleMemberParams = @{

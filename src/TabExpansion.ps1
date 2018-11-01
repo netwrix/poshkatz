@@ -6,11 +6,18 @@ $mimikatzParams = @{
     'crypto::certificates' = '/export  /systemstore'
     'crypto::key' = '/export /machine'
     'lsadump::dcsync' = '/user: /domain:'
+    'lsadump::dcshadow' = '/object: /domain: /attribute: /value: /push'
 }
 
 $mimikatzParamValues = @{
     'sekurlsa::pth' = @{
         'user' = { Get-ADUser -Filter "Name -like '$($args[0])*'" }
+    }
+    'lsadump::dcsync' = @{
+        'user' = { Get-ADUser -Filter "Name -like '$($args[0])*'" }
+    }
+    'lsadump::dcshadow' = @{
+        'object' = { Get-ADObject -Filter "Name -like '$($args[0])*'" }
     }
 }
 
@@ -18,8 +25,25 @@ function script:cmdOperations($commands, $command, $filter) {
     $commands.$command -split ' ' | Where-Object { $_ -like "$filter*" }
 }
 
-$script:mimikatzCommands = @('privilege::debug', 'sekurlsa::logonpasswords', 'sekurlsa::tickets', 'sekurlsa::pth',  'kerberos::list', 'kerberos::ptt', 'kerberos::golden',
-'vault::cred', 'vault::list', 'token::elevate', 'vault::cred', 'vault::list', 'lsadump::sam', 'lsadump::secrets', 'lsadump::cache', 'token::revert')
+$script:mimikatzCommands = @(
+    'privilege::debug', 
+    'sekurlsa::logonpasswords', 
+    'sekurlsa::tickets', 
+    'sekurlsa::pth', 
+    'kerberos::list', 
+    'kerberos::ptt', 
+    'kerberos::golden',
+    'vault::cred', 
+    'vault::list', 
+    'token::elevate', 
+    'vault::cred', 
+    'vault::list', 
+    'lsadump::sam', 
+    'lsadump::secrets', 
+    'lsadump::cache',
+    'lsadump::dcsync',
+    'lsadump::dcshadow', 
+    'token::revert')
 
 $script:params = $mimikatzParams.Keys -join '|'
 $script:paramsWithValues = $mimikatzParamValues.Keys -join '|'
