@@ -21,7 +21,9 @@ $exportModuleMemberParams = @{
         'Invoke-MKDcSync',
         'Invoke-MKPassTheHash',
         'TabExpansion',
-        'Get-AliasPattern'
+        'Get-AliasPattern',
+        "ConvertFrom-MKOutput",
+        'Invoke-MKDcShadow'
     )
 }
 

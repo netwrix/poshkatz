@@ -37,7 +37,8 @@ FunctionsToExport = @(
     'Invoke-MKPassTheHash',
     'TabExpansion',
     'Get-AliasPattern',
-    'ConvertFrom-Mimi'
+    'ConvertFrom-MKOutput', 
+    'Invoke-MKDcShadow'
 )
 
 # Cmdlets to export from this module
