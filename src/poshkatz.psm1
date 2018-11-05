@@ -23,7 +23,9 @@ $exportModuleMemberParams = @{
         'TabExpansion',
         'Get-AliasPattern',
         "ConvertFrom-MKOutput",
-        'Invoke-MKDcShadow'
+        'Invoke-MKDcShadow',
+        "Get-MKModule",
+        "Get-MKCommand"
     )
 }
 

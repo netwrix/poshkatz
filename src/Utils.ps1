@@ -125,3 +125,25 @@ function dbg($Message, [Diagnostics.Stopwatch]$Stopwatch) {
         Write-Verbose ('{0:00000}:{1}' -f $Stopwatch.ElapsedMilliseconds,$Message) -Verbose # -ForegroundColor Yellow
     }
 }
+
+function ConvertTo-Object {
+    param(
+      [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+      [string[]]$InputString,
+  
+      [Parameter(Mandatory=$true,ValueFromRemainingArguments=$true)]
+      [string]$Pattern
+    )
+  
+    process{
+      foreach($string in $InputString){
+  
+        $Matches = [System.Text.RegularExpressions.RegEx]::Matches($InputString, $Pattern)
+        foreach($match in $matches) {
+          $Properties = $match.Groups | Select-Object -Skip 1 | ForEach-Object -Begin {$t = @{}} -Process {$t[$_.Name] = $_.Value} -End {$t}
+          [PSCustomObject]$Properties
+        }
+      }
+    }
+  }
+  

@@ -15,6 +15,7 @@ $mimikatzParamValues = @{
     }
     'lsadump::dcsync' = @{
         'user' = { Get-ADUser -Filter "Name -like '$($args[0])*'" }
+        'domain' = { Get-ADDomain | Where Name -Like "$($args[0])*" | Select-Object -Expand Name }
     }
     'lsadump::dcshadow' = @{
         'object' = { Get-ADObject -Filter "Name -like '$($args[0])*'" }
@@ -25,25 +26,36 @@ function script:cmdOperations($commands, $command, $filter) {
     $commands.$command -split ' ' | Where-Object { $_ -like "$filter*" }
 }
 
-$script:mimikatzCommands = @(
-    'privilege::debug', 
-    'sekurlsa::logonpasswords', 
-    'sekurlsa::tickets', 
-    'sekurlsa::pth', 
-    'kerberos::list', 
-    'kerberos::ptt', 
-    'kerberos::golden',
-    'vault::cred', 
-    'vault::list', 
-    'token::elevate', 
-    'vault::cred', 
-    'vault::list', 
-    'lsadump::sam', 
-    'lsadump::secrets', 
-    'lsadump::cache',
-    'lsadump::dcsync',
-    'lsadump::dcshadow', 
-    'token::revert')
+function Get-MKModule {
+    param($Filter)
+
+    $Output = (mimikatz l::l exit) -join ([Environment]::NewLine)
+    $Matches = [System.Text.RegularExpressions.RegEx]::Matches($Output, "(?:(?<Command>.*)\s+-\s(?<Help>.*))")
+    $matches | Select-Object -Skip 1 | ForEach-Object -Process {
+        [PSCustomObject]@{
+            Name = $_.Captures.Groups[1].Value.Trim();
+            Description = $_.Captures.Groups[2].Value.Trim()
+        }
+    } | Sort-Object -Property Name | Where-Object { $_ -like "$filter*" }
+}
+
+$script:modules = Get-MKModule | Select-Object -ExpandProperty Name
+
+function Get-MKCommand {
+    param(
+        [string]$Module,
+        [string]$Filter
+    )
+
+    $Output = (mimikatz "$Module::l" exit) -join ([Environment]::NewLine)
+    $Matches = [System.Text.RegularExpressions.RegEx]::Matches($Output, "(?:(?<Command>.*)\s+-\s(?<Help>.*))")
+    $matches | Select-Object -Skip 1 | ForEach-Object -Process {
+        [PSCustomObject]@{
+            Name = $_.Captures.Groups[1].Value.Trim();
+            Description = $_.Captures.Groups[2].Value.Trim()
+        }
+    } | Sort-Object -Property Name | Where-Object { $_ -like "$filter*" }
+}
 
 $script:params = $mimikatzParams.Keys -join '|'
 $script:paramsWithValues = $mimikatzParamValues.Keys -join '|'
@@ -58,12 +70,12 @@ filter quoteStringWithSpecialChars {
     }
 }
 
-function script:commands($filter) {
-        $cmdList = @()
-        $cmdList += $script:mimikatzCommands  |
-                Where-Object { $_ -like "$filter*" }
+function script:modules($filter) {
+    Get-MKModule -Filter $filter | Select-Object -ExpandProperty Name | Sort-Object
+}
 
-        $cmdList | Sort-Object
+function script:commands($module, $filter) {
+    Get-MKCommand -Module $module -Filter $filter | Select-Object -ExpandProperty Name | ForEach-Object { "$module::$_" } | Sort-Object
 }
 
 function script:adUsers($filter) {
@@ -88,24 +100,29 @@ function Expand-Command($Command) {
 
 function Get-AliasPattern($exe) {
     $aliases = @($exe) + @(Get-Alias | Where-Object { $_.Definition -eq $exe } | Select-Object -Exp Name)
+    $aliases += "mimikatz.exe"
     "($($aliases -join '|'))"
  }
 
 function TabExpansionInternal($lastBlock) {
     switch -regex ($lastBlock -replace "^$(Get-AliasPattern mimikatz) ","") {
         # Handles <cmd> (commands & aliases)
-        "^(?<cmd>\S*)$" {
-            commands $matches['cmd']
+        "^`"?(?<module>\S*)$" {
+            modules $matches['module']
+        }
+
+        "^`"?(?<cmd>\S*)::(?<value>\S*)$" {
+            commands -Module $matches['cmd'] -Filter $matches['value']
         }
 
         # Handles gitCommands <cmd> /<param>:<value>
-        "^(?<cmd>$paramsWithValues).* /(?<param>[^=]+):(?<value>\S*)$" {
+        "^`"?(?<cmd>$paramsWithValues).* /(?<param>[^=]+):(?<value>\S*)$" {
             expandParamValues $matches['cmd'] $matches['param'] $matches['value']
             return
         }
 
         # Handles mimikatz <cmd> /<param>
-        "^(?<cmd>$params).* /(?<param>\S*)$" {
+        "^`"?(?<cmd>$params).* /(?<param>\S*)$" {
             expandParams $matches['cmd'] $matches['param']
         }
     }

