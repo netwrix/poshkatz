@@ -36,7 +36,7 @@ function Get-MKModule {
             Name = $_.Captures.Groups[1].Value.Trim();
             Description = $_.Captures.Groups[2].Value.Trim()
         }
-    } | Sort-Object -Property Name | Where-Object { $_ -like "$filter*" }
+    } | Sort-Object -Property Name | Where-Object { $_.Name -like "$filter*" }
 }
 
 $script:modules = Get-MKModule | Select-Object -ExpandProperty Name
@@ -54,7 +54,7 @@ function Get-MKCommand {
             Name = $_.Captures.Groups[1].Value.Trim();
             Description = $_.Captures.Groups[2].Value.Trim()
         }
-    } | Sort-Object -Property Name | Where-Object { $_ -like "$filter*" }
+    } | Sort-Object -Property Name | Where-Object { $_.Name -like "$filter*" }
 }
 
 $script:params = $mimikatzParams.Keys -join '|'

