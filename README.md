@@ -1,5 +1,7 @@
 poshkatz
 ==================
+![](./images/logo.png) 
+
 poshkatz is a PowerShell module for Mimikatz that has a number of cool features!
 
 **Brought to you by:**  

