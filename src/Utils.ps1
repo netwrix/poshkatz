@@ -129,21 +129,19 @@ function dbg($Message, [Diagnostics.Stopwatch]$Stopwatch) {
 function ConvertTo-Object {
     param(
       [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
-      [string[]]$InputString,
+      [string]$InputString,
   
       [Parameter(Mandatory=$true,ValueFromRemainingArguments=$true)]
       [string]$Pattern
     )
   
-    process{
-      foreach($string in $InputString){
-  
+    process
+    {
         $Matches = [System.Text.RegularExpressions.RegEx]::Matches($InputString, $Pattern)
         foreach($match in $matches) {
-          $Properties = $match.Groups | Select-Object -Skip 1 | ForEach-Object -Begin {$t = @{}} -Process {$t[$_.Name] = $_.Value} -End {$t}
-          [PSCustomObject]$Properties
+            $Properties = $match.Groups | Select-Object -Skip 1 | ForEach-Object -Begin {$t = @{}} -Process {$t[$_.Name] = $_.Value} -End {$t}
+            [PSCustomObject]$Properties
         }
-      }
     }
   }
   
