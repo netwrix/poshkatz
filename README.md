@@ -35,7 +35,7 @@ Autocompletes mimikatz commands, parameters and paramter values.
 ### Convert Mimikatz output into PowerShell Objects
 
 ```
-PS C:\> mimikatz sekurlsa::logonpassword exit | ConvertFrom-Mimikatz -OutputType LogonPasswords
+PS C:\> mimikatz sekurlsa::logonpasswords exit | ConvertFrom-MKOutput -OutputType LogonPasswords
 
 
 Domain           : Window Manager
