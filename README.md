@@ -62,13 +62,13 @@ Session          : Service from 0
 ```
 
 ## Getting Started ##
-1. Install git
-1. Install posh-git
+1. Install [git](https://git-scm.com/download) 
+2. Install posh-git via PowerShell
     > install-module posh-git
-2. Build or Download a fresh copy of [mimikatz](https://github.com/gentilkiwi/mimikatz)
-4. Import the poshkatz module
+3. Build or Download a fresh copy of [mimikatz](https://github.com/gentilkiwi/mimikatz)
+4. Ensure mimikatz.exe is in your environmental PATH variables
+5. Import the poshkatz module
     > Import-Module poshkatz.psd1
-5. Ensure mimikatz.exe is in your path
 6. Have some fun
     > Get-MKLogonPassword
 
