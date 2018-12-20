@@ -139,7 +139,7 @@ function ConvertTo-Object {
     {
         $Matches = [System.Text.RegularExpressions.RegEx]::Matches($InputString, $Pattern)
         foreach($match in $matches) {
-            $Properties = $match.Groups | Select-Object -Skip 1 | ForEach-Object -Begin {$t = @{}} -Process {$t[$_.Name] = $_.Value} -End {$t}
+            $Properties = $match.Groups | Select-Object -Skip 1 | Where-Object { -not [int]::TryParse($_.Name, [ref]$null) } | ForEach-Object -Begin {$t = @{}} -Process {$t[$_.Name] = $_.Value} -End {$t}
             [PSCustomObject]$Properties
         }
     }
