@@ -3,24 +3,165 @@ $mimikatzParams = @{
     'kerberos::golden' = '/admin: /domain: /sid: /krbtgt: /ticket:'
     'sekurlsa::tickets' = '/export'
     'sekurlsa::pth' = '/user: /domain: /ntlm: /run:'
-    'crypto::certificates' = '/export  /systemstore'
-    'crypto::key' = '/export /machine'
-    'lsadump::dcsync' = '/user: /domain:'
+    'crypto::certificates' = '/export /systemstore: /store: /silent /nokey'
+	'crypto::certtohw' = '/store: /name: /csp: /pin:'
+	'crypto::hash' = '/password: /user: /count:'
+    'crypto::keys' = '/export /machine /provider: /providerype: /cngprovider: /silent'
+	'crypto::scauth' = '/hw /csp: /pin: /nostore /castore: /caname: /upn: /crldp: /pfx:' #TODO
+	'crypto::stores' = '/systemstore:'
+	'crypto::system' = '/export /file:'
+	'lsadump::cache' = '/user: /password: /ntlm: /subject: /system: /security:' # TODO:
+    'lsadump::changentlm' = '/oldpassword: /oldntlm: /newpassword: /newntlm: /server: /user: /rid:' #TODO
+	'lsadump::dcsync' = '/user: /domain:'
     'lsadump::dcshadow' = '/object: /domain: /attribute: /value: /push'
+	'lsadump::lsa' = '/patch /inject /id: /user:'
+	'lsadump::sam' = '/system: /sam:'
+	'lsadump::secrets' = '/system: /security:'
+	'lsadump::setntlm' = '/password: /ntlm: /server: /user: /rid:' #TODO
+	'lsadump::trust' = '/system: /patch'
+	'acr::open' = '/trace'
+	'busylight::single' = '/sound /color:'
+	'event::clear' = '/log:'
+	'iis::apphost' = '/live /in: /pvk:'
+	'misc::skeleton' = '/letaes'
+	'misc::wp' = '/file: /process:'
+	'net::deleg' = '/dns /server:'
+	'net::trust' = '/server:'
+	'rpc::server' = '/stop /protseq: /endpoint: /service: /alg: /noauth /ntlm /kerberos /noreg /secure /guid:' # TODO
+	'rpc::connect' = '/server: /protseq: /endpoint: /service: /alg: /noauth /ntlm /kerberos /null /guid:' # TODO CALG_3DES = 3DES, Prot = ncacn_ip_tcp
 }
+
+$getUserScript = { Get-ADUser -Filter "Name -like '$($args[0])*'" }
 
 $mimikatzParamValues = @{
     'sekurlsa::pth' = @{
-        'user' = { Get-ADUser -Filter "Name -like '$($args[0])*'" }
+        'user' = $getUserScript
     }
+	'lsadump::cache' = @{
+		'subject' = {
+			Get-ChildItem -Path Cert:\CurrentUser\My |
+				where Subject -like "*$($args[0])*" |
+				Select-Object -ExpandProperty Subject
+		}
+	}
     'lsadump::dcsync' = @{
-        'user' = { Get-ADUser -Filter "Name -like '$($args[0])*'" }
+        'user' = $getUserScript
         'domain' = { Get-ADDomain | Where Name -Like "$($args[0])*" | Select-Object -Expand Name }
     }
     'lsadump::dcshadow' = @{
         'object' = { Get-ADObject -Filter "Name -like '$($args[0])*'" }
     }
+	'lsadump::lsa' = @{
+		'id' = { 500 }
+		'user' = $getUserScript
+	}
+	'crypto::certificates' = @{ 
+		'systemstore' = { $certSystemStoreLocations }
+		'store' = { $certSystemStoreNames }
+	}
+	'crypto::certtohw' = @{
+		'store' = { $certSystemStoreLocations }
+		'csp' = { $capiProviders }
+		'name' = {
+			Get-ChildItem -Path cert:\ -Recurse |
+				Where-Object { $PSItem.HasPrivateKey -and $PSItem.Subject -like "*$($args[0])*" } |
+				Select-Object -ExpandProperty Subject
+			}
+	}
+	'crypto::hash' = @{
+        'user' = $getUserScript
+		'count' = { 10240 }
+    }
+	'crypto::keys' = @{ 
+		'provider' = { $capiProviders }
+		'providertype' = { $capiProviderTypes }
+		'cngprovider' = { $cngProviders }
+	}
+	'crypto::scauth' = @{
+		'csp' = { $capiProviders }
+		'castore' = { $certSystemStoreLocations }
+	}
+	'crypto::stores' = @{ 
+		'systemstore' = { $certSystemStoreLocations }
+	}
+	'busylight::single' = @{
+		'color' = { @('0xFF0000', '0x00FF00', '0x0000FF') }
+	}
+	'event::clear' = @{
+		'log' = { Get-EventLog -List -AsString }
+	}
+	'misc::wp' = @{
+		'process' = { 'explorer.exe' } # TODO: List valid processes
+	}
 }
+
+$certSystemStoreLocations = @(
+	'CURRENT_USER',
+	'LOCAL_MACHINE',
+	'CURRENT_SERVICE',
+	'SERVICES',
+	'USERS',
+	'USER_GROUP_POLICY',
+	'LOCAL_MACHINE_GROUP_POLICY',
+	'LOCAL_MACHINE_ENTERPRISE'
+)
+
+$certSystemStoreNames = @(
+	'ACRS',
+	'ADDRESSBOOK',
+    'AuthRoot',
+    'CA',
+	'ClientAuthIssuer',
+	'Disallowed',
+	'eSIM Certification Authorities',
+	'FlightRoot',
+	'Homegroup Machine Certificates',
+	'Local NonRemovable Certificates',
+	'My',
+	'Remote Desktop',
+	'REQUEST',
+	'Root',
+	'SmartCardRoot',
+	'TestSignRoot',
+	'Trust',
+	'TrustedDevices',
+	'TrustedPeople',
+	'TrustedPublisher',
+	'UserDS',
+	'Windows Live ID Token Issuer'
+)
+
+$capiProviderTypes = @(
+	'PROV_RSA_FULL',
+	'PROV_RSA_AES',
+	'PROV_RSA_SIG',
+	'PROV_RSA_SCHANNEL',
+	'PROV_DSS',
+	'PROV_DSS_DH',
+	'PROV_DH_SCHANNEL',
+	'PROV_FORTEZZA',
+	'PROV_MS_EXCHANGE',
+	'PROV_SSL'
+)
+
+$capiProviders = @(
+	'MS_DEF_DH_SCHANNEL_PROV',
+	'MS_DEF_DSS_DH_PROV',
+	'MS_DEF_DSS_PROV',
+	'MS_DEF_PROV',
+	'MS_DEF_RSA_SCHANNEL_PROV',
+	'MS_DEF_RSA_SIG_PROV',
+	'MS_ENH_DSS_DH_PROV',
+	'MS_ENH_RSA_AES_PROV',
+	'MS_ENHANCED_PROV',
+	'MS_SCARD_PROV',
+	'MS_STRONG_PROV'
+)
+
+$cngProviders = @(
+	'Microsoft Software Key Storage Provider',
+	'Microsoft Smart Card Key Storage Provider'
+)
 
 function script:cmdOperations($commands, $command, $filter) {
     $commands.$command -split ' ' | Where-Object { $_ -like "$filter*" }
