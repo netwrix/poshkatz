@@ -1,20 +1,39 @@
 $mimikatzParams = @{
+    'kerberos::ask' = '/target: /rc4 /des /aes128 /aes256 /tkt /export /nocache'
+    'kerberos::clist' = '/export'
+    'kerberos::decode' = '/rc4: /aes128: /aes256: /des: /in: /out: /offset: /size:'
+    'kerberos::hash' = '/password: /user: /domain: /count:'
     'kerberos::list' = '/export'
-    'kerberos::golden' = '/admin: /domain: /sid: /krbtgt: /ticket:'
+    'kerberos::golden' = '/ptt /user: /domain: /des: /rc4: /aes128: /aes256: /service: /target: /krbtgt: /startoffset: /endin: /renewmax: /sid: /id: /groups: /sids: /claims: /rodc: /ticket:' #TODO: domain fqdn
+    'sekurlsa::bkeys' = '/export'
     'sekurlsa::tickets' = '/export'
-    'sekurlsa::pth' = '/user: /domain: /ntlm: /run:'
+    'sekurlsa::pth' = '/user: /domain: /luid: /ntlm: /aes128: /aes256: /impersonate /run:'
     'crypto::certificates' = '/export /systemstore: /store: /silent /nokey'
     'crypto::certtohw' = '/store: /name: /csp: /pin:'
     'crypto::hash' = '/password: /user: /count:'
-    'crypto::keys' = '/export /machine /provider: /providerype: /cngprovider: /silent'
-    'crypto::scauth' = '/hw /csp: /pin: /nostore /castore: /caname: /upn: /crldp: /pfx:' #TODO
+    'crypto::keys' = '/export /provider: /providerype: /cngprovider: /machine /silent'
+    'crypto::scauth' = '/caname: /upn: /pfx: /castore: /hw /csp: /pin: /nostore /crldp:' #TODO
     'crypto::stores' = '/systemstore:'
     'crypto::system' = '/export /file:'
+    'dpapi::blob' = '/in: /out: /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::cache' = '/file: /flush /load /save'
+    'dpapi::capi' = '/in: /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::chrome' = '/in: /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::cng' = '/in: /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::cred' = '/in: /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::credhist' = '/in: /sid: /password: /sha1:'
+    'dpapi::masterkey' = '/in: /protected /sid: /hash: /system: /password: /pvk: /rpc /dc: /domain:' # TODO: dc, domain
+    'dpapi::protect' = '/data: /description: /entropy: /machine /system /prompt /c /out:'
+    'dpapi::rdg' = '/in: /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::ssh' = '/hive: /impersonate /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::vault' = '/cred: /policy: /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::wifi' = '/in: /unprotect /masterkey: /password: /entropy: /prompt /machine'
+    'dpapi::wwan' = '/in: /unprotect /masterkey: /password: /entropy: /prompt /machine'
     'lsadump::bkey' = '/system: /export /secret /guid:'
     'lsadump::cache' = '/user: /password: /ntlm: /subject: /system: /security:' # TODO:
     'lsadump::changentlm' = '/oldpassword: /oldntlm: /newpassword: /newntlm: /server: /user: /rid:' #TODO
-    'lsadump::dcsync' = '/user: /domain:'
-    'lsadump::dcshadow' = '/object: /domain: /attribute: /value: /push'
+    'lsadump::dcsync' = '/all /user: /guid: /domain: /dc: /altservice: /export /csv' #TODO: /dc:
+    'lsadump::dcshadow' = '/object: /domain: /attribute: /value: /clean /multiple /replOriginatingUid: /replOriginatingUsn: /replOriginatingTime: /dynamic /dc: /computer: /push /stack /viewstack /clearstack /manualregister /manualpush /manualunregister /addentry /remotemodify /viewreplication /kill: /config /schema /root'
     'lsadump::lsa' = '/patch /inject /id: /user:'
     'lsadump::netsync' = '/dc: /user: /ntlm: /account: /computer:'
     'lsadump::rpdata' = '/system: /name: /export /secret'
@@ -30,20 +49,47 @@ $mimikatzParams = @{
     'misc::wp' = '/file: /process:'
     'net::deleg' = '/dns /server:'
     'net::trust' = '/server:'
+    'process::exports' = '/pid:'
+    'process::imports' = '/pid:'
+    'process::resume' = '/pid:'
+    'process::runp' = '/run: /ppid: /token'
+    'process::stop' = '/pid:'
+    'process::suspend' = '/pid:'
     'rpc::server' = '/stop /protseq: /endpoint: /service: /alg: /noauth /ntlm /kerberos /noreg /secure /guid:' # TODO
     'rpc::connect' = '/server: /protseq: /endpoint: /service: /alg: /noauth /ntlm /kerberos /null /guid:' # TODO CALG_3DES = 3DES, Prot = ncacn_ip_tcp
+    'sid::add' = '/sam: /sid: /new: /system:' # TODO: SAM, system
+    'sid::clear' = '/sam: /sid: /system:' # TODO: SAM, system
+    'sid::lookup' = '/sid: /name: /system:' # TODO: name, system
+    'sid::modify' = '/sam: /sid: /new: /system:' # TODO: SAM, system
+    'sid::query' = '/sam: /sid: /system:' # TODO: SAM, system
     'standard::base64' = '/in /out'
     'standard::log' = '/stop'
     'standard::version' = '/full /cab'
+    'sysenv::del' = '/name: /guid: /attributes:'
+    'sysenv::get' = '/name: /guid:'
+    'sysenv::set' = '/name: /guid: /attributes: /data:'
+    'token::elevate' = '/user: /id: /system /admin /domainadmin /enterpriseadmin'
+    'token::list' = '/user: /id: /system /admin /domainadmin /enterpriseadmin'
+    'token::run' = '/process: /user: /id:' #TODO: user
     'ts::remote' = '/id: /target: /password:'
     'ts::sessions' = '/server:'
+    'vault::cred' = '/patch'
+    'vault::list' = '/attributes'
 }
 
 $getUserScript = { Get-ADUser -Filter "Name -like '$($args[0])*'" }
+$getCommandScript = { Get-Command -Name "$($args[0])*" -CommandType Application | Select-Object -ExpandProperty Name }
+$getPidScript = { Get-Process | Select-Object -ExpandProperty Id | Sort-Object }
+$getDomainScript = { Get-ADDomain | Where Name -Like "$($args[0])*" | Select-Object -Expand Name }
 
 $mimikatzParamValues = @{
     'sekurlsa::pth' = @{
         'user' = $getUserScript
+        'domain' = $getDomainScript
+        'run' = { 'cmd.exe', 'mmc.exe' }
+    }
+    'kerberos::hash' = @{
+        'count' = { 4096 }
     }
     'lsadump::cache' = @{
         'subject' = {
@@ -54,7 +100,8 @@ $mimikatzParamValues = @{
     }
     'lsadump::dcsync' = @{
         'user' = $getUserScript
-        'domain' = { Get-ADDomain | Where Name -Like "$($args[0])*" | Select-Object -Expand Name }
+        'domain' = $getDomainScript
+        'altservice' = { 'ldap' }
     }
     'lsadump::dcshadow' = @{
         'object' = { Get-ADObject -Filter "Name -like '$($args[0])*'" }
@@ -101,6 +148,43 @@ $mimikatzParamValues = @{
     'misc::wp' = @{
         'process' = { 'explorer.exe' } # TODO: List valid processes
     }
+    'process::exports' = @{
+        'pid' = $getPidScript
+    }
+    'process::imports' = @{
+        'pid' = $getPidScript
+    }
+    'process::resume' = @{
+        'pid' = $getPidScript
+    }
+    'process::runp' = @{
+        'run' = $getCommandScript
+        'ppid' = $getPidScript
+    }
+    'process::stop' = @{
+        'pid' = $getPidScript
+    }
+    'process::suspend' = @{
+        'pid' = $getPidScript
+    }
+    'sysenv::del' = @{
+        'name' = { 'Kernel_Lsa_Ppl_Config' } 
+        'guid' = { '{77fa9abd-0359-4d32-bd60-28f4e78f784b}' }
+        'attributes' = { '07' }
+    }
+    'sysenv::get' = @{
+        'name' = { 'Kernel_Lsa_Ppl_Config' } 
+        'guid' = { '{77fa9abd-0359-4d32-bd60-28f4e78f784b}' }
+    }
+    'sysenv::set' = @{
+        'name' = { 'Kernel_Lsa_Ppl_Config' } 
+        'guid' = { '{77fa9abd-0359-4d32-bd60-28f4e78f784b}' }
+        'attributes' = { '07' }
+        'data' = { '04' }
+    }
+    'token::run' = @{
+        'process' = $getCommandScript
+    }
 }
 
 $certSystemStoreLocations = @(
@@ -115,26 +199,27 @@ $certSystemStoreLocations = @(
 )
 
 $certSystemStoreNames = @(
+    'My',
+    'Root',
+    'Remote Desktop',
+    'Trust',
+    'CA',
+    'TrustedPublisher',
     'ACRS',
     'ADDRESSBOOK',
     'AuthRoot',
-    'CA',
     'ClientAuthIssuer',
     'Disallowed',
     'eSIM Certification Authorities',
     'FlightRoot',
     'Homegroup Machine Certificates',
+    'ipcu',
     'Local NonRemovable Certificates',
-    'My',
-    'Remote Desktop',
     'REQUEST',
-    'Root',
     'SmartCardRoot',
     'TestSignRoot',
-    'Trust',
     'TrustedDevices',
     'TrustedPeople',
-    'TrustedPublisher',
     'UserDS',
     'Windows Live ID Token Issuer'
 )
@@ -168,7 +253,13 @@ $capiProviders = @(
 
 $cngProviders = @(
     'Microsoft Software Key Storage Provider',
-    'Microsoft Smart Card Key Storage Provider'
+    'Microsoft Smart Card Key Storage Provider',
+    'Microsoft Platform Crypto Provider',
+    'Microsoft Key Protection Provider',
+    'Microsoft Passport Key Storage Provider',
+    'Microsoft Primitive Provider',
+    'Microsoft SSL Protocol Provider',
+    'Windows Client Key Protection Provider'
 )
 
 function script:cmdOperations($commands, $command, $filter) {
