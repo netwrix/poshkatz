@@ -2,7 +2,25 @@ Set-StrictMode -Version Latest
 
 #region Mimikatz Command Parameters
 $mimikatzParams = @{
-    # TODO: Kernel commands
+    '!+' = ''
+    '!-' = ''
+    '!ping' = ''
+    '!bsod' = ''
+    '!filters' = ''
+    '!minifilters' = ''
+    '!modules' = ''
+    '!notifImage' = ''
+    '!notifObject' = ''
+    '!notifProcess' = ''
+    '!notifReg' = ''
+    '!notifThread' = ''
+    '!process' = ''
+    '!processPrivilege' = '/pid:'
+    '!processProtect' = '/process: /pid: /remove'
+    '!processToken' = '/from: /to:'
+    '!sysenvdel' = '/name: /guid: /attributes:'
+    '!sysenvset' = '/name: /guid: /attributes: /data:'
+    '!ssdt' = ''
     'acr::open' = '/trace'
     'busylight::single' = '/sound /color:'
     'crypto::certificates' = '/export /systemstore: /store: /silent /nokey'
@@ -506,9 +524,8 @@ function script:expandParams($cmd, $filter) {
 }
 
 function script:expandParamValues($cmd, $param, $filter) {
-    $mimikatzParamValues[$cmd][$param].Invoke($filter) | Select-Object -ExpandProperty "Name" | 
-    Sort-Object |
-    ForEach-Object { -join ("/", $param, ":", $_) }
+    $mimikatzParamValues[$cmd][$param].Invoke($filter) |
+        ForEach-Object { -join ("/", $param, ":", $_) }
 }
 
 function Expand-Command($Command) {
