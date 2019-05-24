@@ -407,7 +407,7 @@ function Expand-ADUserUPN([string] $Filter) {
 }
 
 function Expand-ADComputerFQDN([string] $Filter) {
-    Get-ADComputer -Filter { DNSHostName -like "$Filter*" } -Properties DNSHostName  |
+    Get-ADComputer -Filter { DNSHostName -like "$Filter*" } -Properties DNSHostName -ResultSetSize 10 |
         Select-Object -ExpandProperty DNSHostName
 }
 
@@ -434,7 +434,7 @@ function Expand-LoggedOnUserName([string] $Filter) {
         sort -Unique
 }
 function Expand-ProcessId([string] $Filter) {
-    Get-Process -IncludeUserName Name,Id |
+    Get-Process |
         Where-Object { $PSItem.ProcessName -like "$Filter*" -or $PSItem.Id.ToString() -like "$Filter*" } |
         Select-Object -ExpandProperty Id
 }
